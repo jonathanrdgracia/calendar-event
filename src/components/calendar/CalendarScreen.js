@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import AppRouter from '../../router/AppRouter'
 import Navbar from '../ui/Navbar'
 import { Calendar, momentLocalizer} from 'react-big-calendar'
 import moment from 'moment'
@@ -9,6 +8,10 @@ import '../../css/CalendarScreen.css'
 import messages from '../../help/calendar-messages-es'
 import CalendarEvent from './CalendarEvent'
 import CalendarModal from './CalendarModal'
+import { useDispatch } from 'react-redux'
+import { uiOpenModal } from '../../action/ui'
+import { eventSetNew } from '../../action/event'
+import AddNewFab from '../ui/AddNewFab'
 
 const localizer = momentLocalizer(moment)
 moment.locale('es')
@@ -22,13 +25,31 @@ const events = [{
     user:{
         id:'skdAf2hR2Ab0sGpAQ',
         name:'Jonathan'
-    }
+    },
+},{
+    title: 'Comprar el pastel',
+    notes: 'jejeje',
+    start: moment().add(3,'days').toDate(),
+    end: moment().add(3,'days').add(1,'hours').toDate(),
+    bgColor: 'yellow',
+    user:{
+        id:'skdAf2hR2Ab0sGpAQ',
+        name:'Jonathan'
+    },
 }]
 
 function CalendarScreen() {
 
     const [lastView, setLastView] = useState(localStorage.getItem('lastView') || 'month' )
+    const dispatch = useDispatch()    
     
+    const onDoubleClick=e=>{
+        dispatch(uiOpenModal())
+    }
+    const onSelectEvent=e=>{
+        dispatch(eventSetNew(e))
+    }
+
     const onViewChange= e => {
         
         localStorage.setItem('lastView',e)
@@ -54,20 +75,22 @@ function CalendarScreen() {
            <Navbar/>
 
            <Calendar
-           
-               localizer={ localizer }
-               events= {events}
-               startAccessor='start'
-               endAccessor='end'
-               messages= {messages}
-               eventPropGetter={eventPropGetter}
-               onView = {onViewChange}
-               view = {lastView}
-               components={{
+                onSelectEvent = { onSelectEvent }
+                onDoubleClickEvent = { onDoubleClick }
+                localizer={ localizer }
+                events= {events}
+                startAccessor='start'
+                endAccessor='end'
+                messages= {messages}
+                eventPropGetter={eventPropGetter}
+                onView = {onViewChange}
+                view = {lastView}
+                components={{
                 event: CalendarEvent
                }}
            />
            <CalendarModal/>
+           <AddNewFab/>
         </div>
     )
 }
