@@ -1,11 +1,11 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect } from 'react';
 import Modal from 'react-modal';
 import '../../css/CalendarModal.css'
 import DateTimePicker from 'react-datetime-picker'
 import moment from 'moment'
 import { useDispatch, useSelector } from 'react-redux';
 import { uiCloseModal, uiOpenModal } from '../../action/ui'
+import { eventAddNew, eventClearActiveEvent, eventUpdate } from '../../action/event';
 
 const customStyles = {
   content : {
@@ -22,34 +22,48 @@ Modal.setAppElement('#root')
 
 const today = moment().minute(0).second(0)
 const lastDate = today.clone().add(1,'hours').toDate()
-
+const initEvent = {
+  title: '',
+  notes: '',
+  start: today.toDate(),
+  end: lastDate
+}
 
 const CalendarModal = () => {
 
   const dispatch = useDispatch()
+  const { activeEvent } = useSelector(state => state.calendar)
   const { modalOpen } = useSelector(state => state.ui)
 
   const [dateStart, setDateStart] = React.useState(today.toDate())
   const [dateEnd, setDatEnd] = React.useState(lastDate)
   const [titleValid, setTitleValid] = React.useState(true)
   
+
   const closeModal=()=>{
     dispatch(uiCloseModal())
+    setFormValue(initEvent)
+    dispatch(eventClearActiveEvent ())
   }
-  const [formValue,setFormValue] = React.useState({
-    title: 'Evento',
-    notes: '',
-    start: today.toDate(),
-    end: lastDate
-  })
+  const [formValue,setFormValue] = React.useState(initEvent)
 
   const { title, note, start, end } = formValue
+
+  useEffect(()=>{
+    if(activeEvent){
+      setFormValue(activeEvent)
+    }else{
+      setFormValue(initEvent)
+    }
+  },[activeEvent])
+
   
   const handleInputChange = ({target}) =>{
     setFormValue({
       ...formValue,
       [target.name] : target.value,
     })
+
   }
   const handleStartDate= e =>{
     
@@ -60,8 +74,6 @@ const CalendarModal = () => {
     })
   }
   const handleEndDate= e =>{
-    console.log(start);
-    console.log(end);
     setDatEnd(e)
     setFormValue({
       ...formValue,
@@ -73,21 +85,28 @@ const CalendarModal = () => {
       
       const momentStart = moment(start)
       const momentEnd = moment(end)
-      console.log(momentStart);
-      console.log(momentEnd);
-      console.log(momentStart.isSameOrAfter(momentEnd));
-      
+     
       if(momentStart.isSameOrAfter(momentEnd)){
         console.log('fecha 2 debe ser mayor');
       }
 
       if(title.trim().length < 2){
-          setTitleValid(false)
+          return setTitleValid(false)
       }else{
         setTitleValid(true)
       }
 
-      
+      if(activeEvent){
+        dispatch(eventUpdate(formValue))
+      }else{
+        dispatch( eventAddNew({
+        ...formValue,
+        user:{
+          id:'skdAf2hR2Ab0sGpAQ',
+          name:'Jonathan'
+        },
+        }))}
+      closeModal()
     }
 
     return (

@@ -8,41 +8,25 @@ import '../../css/CalendarScreen.css'
 import messages from '../../help/calendar-messages-es'
 import CalendarEvent from './CalendarEvent'
 import CalendarModal from './CalendarModal'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { uiOpenModal } from '../../action/ui'
-import { eventSetNew } from '../../action/event'
+import { eventClearActiveEvent, eventSetNew } from '../../action/event'
 import AddNewFab from '../ui/AddNewFab'
+import DeleteEventFab from '../ui/DeleteEventFab'
 
 const localizer = momentLocalizer(moment)
 moment.locale('es')
 
-const events = [{
-    title: 'Comprar el pastel',
-    notes: 'jejeje',
-    start: moment().toDate(),
-    end: moment().add(1,'hour').toDate(),
-    bgColor: 'yellow',
-    user:{
-        id:'skdAf2hR2Ab0sGpAQ',
-        name:'Jonathan'
-    },
-},{
-    title: 'Comprar el pastel',
-    notes: 'jejeje',
-    start: moment().add(3,'days').toDate(),
-    end: moment().add(3,'days').add(1,'hours').toDate(),
-    bgColor: 'yellow',
-    user:{
-        id:'skdAf2hR2Ab0sGpAQ',
-        name:'Jonathan'
-    },
-}]
 
 function CalendarScreen() {
 
+    const { events,activeEvent } = useSelector(state => state.calendar)   
     const [lastView, setLastView] = useState(localStorage.getItem('lastView') || 'month' )
     const dispatch = useDispatch()    
     
+    const onSelectSlot=e=>{
+        dispatch(eventClearActiveEvent())   
+    }
     const onDoubleClick=e=>{
         dispatch(uiOpenModal())
     }
@@ -79,6 +63,8 @@ function CalendarScreen() {
                 onDoubleClickEvent = { onDoubleClick }
                 localizer={ localizer }
                 events= {events}
+                onSelectSlot = { onSelectSlot }
+                selectable= {true}
                 startAccessor='start'
                 endAccessor='end'
                 messages= {messages}
@@ -91,6 +77,9 @@ function CalendarScreen() {
            />
            <CalendarModal/>
            <AddNewFab/>
+           { activeEvent && (<DeleteEventFab/>)}
+
+           
         </div>
     )
 }
